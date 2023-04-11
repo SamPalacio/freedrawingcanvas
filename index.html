@@ -33,12 +33,11 @@
     canvas.isDrawingMode = true;
     canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
-    canvas.setWidth(window.innerWidth);
-    canvas.setHeight(window.innerHeight);
+    canvas.setWidth(window.innerWidth/2);
+    canvas.setHeight(window.innerHeight/1.2);
 
     // Reduce the resolution by setting the zoom
-    var zoom = window.devicePixelRatio || 1;
-    canvas.setZoom(1 / zoom);
+
     canvas.on('object:added',function(){
         if(!isRedoing){
             history = [];
