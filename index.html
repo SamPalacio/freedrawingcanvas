@@ -3,21 +3,21 @@
 <head>
     <meta charset="utf-8">
     <title>Fabric.js Example</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.19/fabric.min.js"></script>
+    <script src="fabric.min.js"></script>
 </head>
 <body>
 <canvas id="canvasId"></canvas>
 </body>
 
 <style>
-    canvas{
-        width: 300px;
-        height: 400px;
-        border: 2px solid;
-    }
-    body{
-        overflow: hidden;
-    }
+	canvas{
+		width: 300px;
+		height: 400px;
+		border: 2px solid;
+	}
+	body{
+		overflow: hidden;
+	}
 </style>
 
 <script>
@@ -26,8 +26,10 @@
 
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
-    let canvas = new fabric.Canvas(document.getElementById('canvasId'))
-
+    let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
+        renderOnAddRemove: false, // lazy rendering
+        canvasElement: 'auto', // hardware acceleration
+    });
     canvas.isDrawingMode = true;
     canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
@@ -40,7 +42,9 @@
         }
         isRedoing = false;
     });
-
+    // Set the canvas size to match the screen size
+    canvas.setWidth(window.innerWidth);
+    canvas.setHeight(window.innerHeight);
     let isRedoing = false;
     let history = [];
     function undo(){
@@ -69,7 +73,7 @@
 
     document.addEventListener("keydown", function(event) {
         if (event.ctrlKey && event.code === 'KeyZ') {
-          undo();
+            undo();
         }
 
     });
