@@ -5,117 +5,215 @@
     <script src="fabric.min.js"></script>
 </head>
 <div id="contCanvasLogo">
+    <canvas id="canvasId" class="resize canvasLogo"></canvas>
 </div>
 
 <style>
 	#contCanvasLogo {
-		width: 80vw;
-		height: 95vh;
-        display: flex;
+		width: 100vw;
+		height: 100vh;
 	}
-	canvas{border: 2px solid red;
-    align-self: center;
-    }
+
+	#canvas{border:red;}
 	body{
 		overflow: hidden;
 	}
 </style>
 
 <script>
-    const canvas = document.createElement('canvas');
-    canvas.width = document.getElementById('contCanvasLogo').clientWidth;
-    canvas.height = document.getElementById('contCanvasLogo').clientHeight;
-    document.getElementById('contCanvasLogo').appendChild(canvas);
 
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    let isDrawing = false;
-    let lastX, lastY;
-
-    canvas.addEventListener('mousedown', (e) => {
-        isDrawing = true;
-        [lastX, lastY] = [e.offsetX, e.offsetY];
-    });
-    canvas.width = document.getElementById('contCanvasLogo').clientWidth;
-    canvas.height = document.getElementById('contCanvasLogo').clientHeight;
-
-    // Update the canvas size whenever the window is resized
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-    canvas.addEventListener('mousemove', (e) => {
-        if (isDrawing) {
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(e.offsetX, e.offsetY);
-            ctx.stroke();
-            [lastX, lastY] = [e.offsetX, e.offsetY];
+    class FastBrush extends fabric.BaseBrush {
+        initialize(canvas) {
+            this.canvas = canvas;
+            this.points = [];
         }
-    });
 
-    canvas.addEventListener('mouseup', () => {
-        isDrawing = false;
-    });
-
-    canvas.addEventListener('mouseout', () => {
-        isDrawing = false;
-    });
-
-    canvas.addEventListener('touchstart', (e) => {
-        isDrawing = true;
-        [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
-    });
-
-    canvas.addEventListener('touchmove', (e) => {
-        if (isDrawing) {
-            e.preventDefault();
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop);
-            ctx.stroke();
-            [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
+        onMouseDown(pointer) {
+            this.points.length = 0;
+            this.addPoint(pointer);
+            this.canvas.contextTop.beginPath();
+            this.canvas.contextTop.moveTo(pointer.x, pointer.y);
         }
-    });
 
-    canvas.addEventListener('touchend', () => {
-        isDrawing = false;
-    });
+        onMouseMove(pointer) {
+            this.addPoint(pointer);
+            const length = this.points.length;
+            if (length === 2) {
+                this.canvas.contextTop.lineTo(this.points[1].x, this.points[1].y);
+                this.canvas.contextTop.stroke();
+                this.canvas.contextTop.beginPath();
+                this.canvas.contextTop.moveTo(this.points[1].x, this.points[1].y);
+            } else if (length > 2) {
+                const lastPoint = this.points[length - 1];
+                const prevPoint = this.points[length - 2];
+                const midPoint = {
+                    x: (lastPoint.x + prevPoint.x) / 2,
+                    y: (lastPoint.y + prevPoint.y) / 2,
+                };
+                this.canvas.contextTop.quadraticCurveTo(
+                    prevPoint.x,
+                    prevPoint.y,
+                    midPoint.x,
+                    midPoint.y
+                );
+                this.canvas.contextTop.stroke();
+            }
+        }
 
+        onMouseUp() {
+            this.canvas.fire('path:created', { path: this._finalizeDrawing() });
+        }
 
-    let undoStack = [];
+        addPoint(pointer) {
+            this.points.push({
+                x: pointer.x,
+                y: pointer.y,
+            });
+        }
 
-    function undo() {
-        if (undoStack.length > 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            undoStack.pop();
-            undoStack.forEach((state) => {
-                ctx.putImageData(state, 0, 0);
+        _finalizeDrawing() {
+            const ctx = this.canvas.contextTop;
+            ctx.closePath();
+
+            const pathData = ctx.getImageData(
+                0,
+                0,
+                this.canvas.width,
+                this.canvas.height
+            );
+
+            this.points.length = 0;
+
+            return new fabric.Path(pathData, {
+                fill: null,
+                stroke: this.color,
+                strokeWidth: this.width,
+                strokeLineCap: this.strokeLineCap,
+                strokeLineJoin: this.strokeLineJoin,
+                strokeMiterLimit: this.strokeMiterLimit,
             });
         }
     }
 
-    function redo() {
-        // Not implemented in this example
+    let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
+        renderOnAddRemove: false, // lazy rendering
+        canvasElement: 'auto', // hardware acceleration
+        antialias: false
+    });
+
+
+    // set the brush to be active when the mouse is down
+    canvas.freeDrawingBrush = new FastBrush(canvas);
+    canvas.isDrawingMode = true;
+    canvas.freeDrawingBrush.width = 3;
+    canvas.freeDrawingBrush.color = 'black';
+    // Reduce the resolution by setting the zoom
+    canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
+    canvas.setWidth(document.getElementById("contCanvasLogo").clientWidth);
+    canvas.on('object:added',function(){
+        if(!isRedoing){
+            history = [];
+        }
+        isRedoing = false;
+    });
+    // Set the canvas size to match the screen size
+
+    let isRedoing = false;
+    let history = [];
+    function undo(){
+        if(canvas._objects.length>0){
+            history.push(canvas._objects.pop());
+            canvas.renderAll();
+        }
+    }
+    function redo(){
+
+        if(history.length>0){
+            isRedoing = true;
+            canvas.add(history.pop());
+        }
     }
 
-    canvas.addEventListener('mouseup', () => {
-        if (isDrawing) {
-            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+
+    canvas.on('path:created', function(e) {
+        e.path.set({
+            selectable: false // Set selectable to false to improve performance
+        });
+
+        requestAnimationFrame(function() {
+            canvas.renderAll();
+        });
+    });
+
+
+    document.addEventListener("keydown", function(event) {
+        if (event.ctrlKey && event.code === 'KeyZ') {
+            undo();
+        }
+
+    });
+
+    document.addEventListener("keydown", function(event) {
+        if (event.ctrlKey && event.code === 'KeyY') {
+            redo();
+        }
+
+    });
+
+    document.addEventListener('keydown', function(event) {
+        // Check if the "P" key was pressed
+        if (event.key === 'p' || event.key === 'P') {
+            var dataURL = canvas.toDataURL('image/jpeg');
+
+            // Create an image object from the data URL
+            var image = new Image();
+            image.src = dataURL;
+
+            // Create a link element and click it to download the image
+            var link = document.createElement('a');
+            link.download = 'canvas.jpg';
+            link.href = dataURL;
+            link.click();
+
         }
     });
 
     document.addEventListener('keydown', function(event) {
         // Check if the "P" key was pressed
         if (event.key === 'e' || event.key === 'E') {
-          undo();
+            changeAction('erase')
         }
-
+        if (event.key === 'b' || event.key === 'B') {
+            changeAction('brush')
+        }
     });
+
+
+    function changeAction(mode) {
+        switch (mode) {
+            case "brush":
+                canvas.isDrawingMode = true;
+                canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
+                canvas.freeDrawingBrush.width = 10;
+                canvas.freeDrawingBrush.color = 'red';
+                break
+            case "erase":
+                canvas.isDrawingMode = true
+                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
+                canvas.freeDrawingBrush.width = 10
+                break
+            case 'undoErasing':
+                canvas.isDrawingMode = true
+                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
+                canvas.freeDrawingBrush.width = 10
+                canvas.freeDrawingBrush.inverted = true
+            default:
+                break
+        }
+    }
+
+
 
 
 </script>
