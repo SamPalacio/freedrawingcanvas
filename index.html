@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Fabric.js Example</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.19/fabric.min.js"></script>
+    <script src="fabric.min.js"></script>
 </head>
 <body>
 <canvas id="canvasId" width="400" height="400"></canvas>
@@ -28,15 +28,6 @@
     canvas.setDimensions({
         width: screenWidth,
         height: screenHeight
-    });
-
-    window.addEventListener('resize', function() {
-        var newScreenWidth = window.innerWidth;
-        var newScreenHeight = window.innerHeight;
-        canvas.setDimensions({
-            width: newScreenWidth,
-            height: newScreenHeight
-        });
     });
 
     canvas.on('path:created', function(e) {
