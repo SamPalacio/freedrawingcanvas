@@ -33,9 +33,12 @@
     canvas.isDrawingMode = true;
     canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
-    canvas.enableTouchEvents = true;
-    canvas.freeDrawingBrush.strokeWidth = 2;
-    canvas.freeDrawingBrush.minStrokeWidth = 1;
+    canvas.setWidth(window.innerWidth);
+    canvas.setHeight(window.innerHeight);
+
+    // Reduce the resolution by setting the zoom
+    var zoom = window.devicePixelRatio || 1;
+    canvas.setZoom(1 / zoom);
     canvas.on('object:added',function(){
         if(!isRedoing){
             history = [];
@@ -43,8 +46,7 @@
         isRedoing = false;
     });
     // Set the canvas size to match the screen size
-    canvas.setWidth(window.innerWidth);
-    canvas.setHeight(window.innerHeight);
+
     let isRedoing = false;
     let history = [];
     function undo(){
