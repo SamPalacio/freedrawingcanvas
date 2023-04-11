@@ -1,31 +1,26 @@
-<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title>Fabric.js Example</title>
     <script src="fabric.min.js"></script>
 </head>
-<body>
-<canvas id="canvasId"></canvas>
-</body>
+<div id="contCanvasLogo">
+    <canvas id="canvasId" class="resize canvasLogo"></canvas>
+</div>
 
 <style>
-	canvas{
+	#contCanvasLogo {
 		width: 320px;
-		height: 800px;
-		border: 2px solid;
+		height: 900px;
 	}
+
+	#canvas{border:red;}
 	body{
 		overflow: hidden;
 	}
 </style>
 
 <script>
-
-
-
-    let screenWidth = window.innerWidth;
-    let screenHeight = window.innerHeight;
     let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
         renderOnAddRemove: false, // lazy rendering
         canvasElement: 'auto', // hardware acceleration
@@ -36,9 +31,10 @@
     canvas.isDrawingMode = true;
     canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
-
+    canvas.setZoom(0.5)
     // Reduce the resolution by setting the zoom
-
+    canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
+    canvas.setWidth(document.getElementById("contCanvasLogo").clientWidth);
     canvas.on('object:added',function(){
         if(!isRedoing){
             history = [];
