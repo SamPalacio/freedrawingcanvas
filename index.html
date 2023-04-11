@@ -23,77 +23,73 @@
 <script>
 
     class FastBrush extends fabric.BaseBrush {
-        initialize(canvas) {
-            this.canvas = canvas;
-            this.points = [];
-        }
+  initialize(canvas) {
+    this.canvas = canvas;
+    this.points = [];
+  }
 
-        onMouseDown(pointer) {
-            this.points.length = 0;
-            this.addPoint(pointer);
-            this.canvas.contextTop.beginPath();
-            this.canvas.contextTop.moveTo(pointer.x, pointer.y);
-        }
+  onMouseDown(pointer) {
+    this.points.length = 0;
+    this.addPoint(pointer);
+    this.canvas.contextTop.beginPath();
+    this.canvas.contextTop.moveTo(pointer.x, pointer.y);
+  }
 
-        onMouseMove(pointer) {
-            this.addPoint(pointer);
-            const length = this.points.length;
-            if (length === 2) {
-                this.canvas.contextTop.lineTo(this.points[1].x, this.points[1].y);
-                this.canvas.contextTop.stroke();
-                this.canvas.contextTop.beginPath();
-                this.canvas.contextTop.moveTo(this.points[1].x, this.points[1].y);
-            } else if (length > 2) {
-                const lastPoint = this.points[length - 1];
-                const prevPoint = this.points[length - 2];
-                const midPoint = {
-                    x: (lastPoint.x + prevPoint.x) / 2,
-                    y: (lastPoint.y + prevPoint.y) / 2,
-                };
-                this.canvas.contextTop.quadraticCurveTo(
-                    prevPoint.x,
-                    prevPoint.y,
-                    midPoint.x,
-                    midPoint.y
-                );
-                this.canvas.contextTop.stroke();
-            }
-        }
-
-        onMouseUp() {
-            this.canvas.fire('path:created', { path: this._finalizeDrawing() });
-        }
-
-        addPoint(pointer) {
-            this.points.push({
-                x: pointer.x,
-                y: pointer.y,
-            });
-        }
-
-        _finalizeDrawing() {
-            const ctx = this.canvas.contextTop;
-            ctx.closePath();
-
-            const pathData = ctx.getImageData(
-                0,
-                0,
-                this.canvas.width,
-                this.canvas.height
-            );
-
-            this.points.length = 0;
-
-            return new fabric.Path(pathData, {
-                fill: null,
-                stroke: this.color,
-                strokeWidth: this.width,
-                strokeLineCap: this.strokeLineCap,
-                strokeLineJoin: this.strokeLineJoin,
-                strokeMiterLimit: this.strokeMiterLimit,
-            });
-        }
+  onMouseMove(pointer) {
+    this.addPoint(pointer);
+    const length = this.points.length;
+    if (length === 2) {
+      this.canvas.contextTop.lineTo(this.points[1].x, this.points[1].y);
+      this.canvas.contextTop.stroke();
+      this.canvas.contextTop.beginPath();
+      this.canvas.contextTop.moveTo(this.points[1].x, this.points[1].y);
+    } else if (length > 2) {
+      const lastPoint = this.points[length - 1];
+      const prevPoint = this.points[length - 2];
+      this.canvas.contextTop.moveTo(prevPoint.x, prevPoint.y);
+      this.canvas.contextTop.lineTo(lastPoint.x, lastPoint.y);
+      this.canvas.contextTop.stroke();
     }
+  }
+
+  onMouseUp() {
+    this.canvas.fire('path:created', { path: this._finalizeDrawing() });
+  }
+
+  addPoint(pointer) {
+    this.points.push({
+      x: pointer.x,
+      y: pointer.y,
+    });
+  }
+
+  _finalizeDrawing() {
+    const ctx = this.canvas.contextTop;
+    ctx.closePath();
+
+    const pathData = ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.points.length = 0;
+
+    return new fabric.Path(pathData, {
+      fill: null,
+      stroke: this.color,
+      strokeWidth: this.width,
+      strokeLineCap: this.strokeLineCap,
+      strokeLineJoin: this.strokeLineJoin,
+      strokeMiterLimit: this.strokeMiterLimit,
+    });
+  }
+}
+
+
+
 
     let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
         renderOnAddRemove: false, // lazy rendering
