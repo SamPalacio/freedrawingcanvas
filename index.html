@@ -35,6 +35,12 @@
         width: screenWidth,
         height: screenHeight
     });
+    
+       canvas.on('path:created', function(e) {
+        e.path.set();
+        canvas.renderAll();
+    });
+    
     }
 
 </script>
