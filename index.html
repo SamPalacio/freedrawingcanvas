@@ -10,9 +10,13 @@
 
 <style>
 	#contCanvasLogo {
-		width: 95vw;
-		height: 95vh;
+		width: 80vw;
+		height: 80vh;
 		border: 2px solid;
+	}
+	canvas{
+		display: block;
+		margin: 0 auto;
 	}
 
 	#canvas{border:red;}
@@ -30,9 +34,14 @@
     canvas.freeDrawingBrush= new fabric.PencilBrush(canvas)
     canvas.freeDrawingBrush.smoothing = false;
     canvas.isDrawingMode = true;
-    canvas.freeDrawingBrush.width = 5;
+    canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
-    canvas.setZoom(0.1)
+    canvas.setZoom(0.5)
+	
+	canvas.devicePixelRatio = 0.5; // set the pixel ratio to 0.5 to reduce the resolution
+canvas.renderOnAddRemove = false; // disable rendering on add/remove for faster performance
+canvas.rendering = 'svg'; // use the svg rendering mode for faster performance
+	
     // Reduce the resolution by setting the zoom
     canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
     canvas.setWidth(document.getElementById("contCanvasLogo").clientWidth);
