@@ -31,16 +31,26 @@
         canvasElement: 'auto', // hardware acceleration
         antialias: false
     });
-    canvas.freeDrawingBrush= new fabric.PencilBrush(canvas)
+    let pencilBrush = new fabric.PencilBrush(canvas)
+	// set the minDistance property to 0 to disable smoothing
+     pencilBrush.minDistance = 0;
+
+// set the pressureSensitivity property to 0 to disable stroke width variation
+    pencilBrush.pressureSensitivity = 0;
+
+// set the stroke width to 5
+	
+	canvas.freeDrawingBrush = pencilBrush;
+	canvas.isDrawingMode = true;
+	
     canvas.freeDrawingBrush.smoothing = false;
-    canvas.isDrawingMode = true;
-    canvas.freeDrawingBrush.width = 3;
+    canvas.freeDrawingBrush.width = 2;
     canvas.freeDrawingBrush.color = 'black';
     canvas.setZoom(0.5)
 	
-	canvas.devicePixelRatio = 0.5; // set the pixel ratio to 0.5 to reduce the resolution
-canvas.renderOnAddRemove = false; // disable rendering on add/remove for faster performance
-canvas.rendering = 'svg'; // use the svg rendering mode for faster performance
+canvas.devicePixelRatio = 0.5; // set the pixel ratio to 0.5 to reduce the resolution
+	canvas.renderOnAddRemove = false; // disable rendering on add/remove for faster performance
+	canvas.rendering = 'svg'; // use the svg rendering mode for faster performance
 	
     // Reduce the resolution by setting the zoom
     canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
