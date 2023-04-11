@@ -1,164 +1,55 @@
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Fabric.js Example</title>
-    <script src="fabric.min.js"></script>
-</head>
-<div id="contCanvasLogo">
-    <canvas id="canvasId" class="resize canvasLogo"></canvas>
-</div>
-
-<style>
-	#contCanvasLogo {
-		width: 80vw;
-		height: 80vh;
-		border: 2px solid;
-	}
-	canvas{
-		display: block;
-		margin: 0 auto;
-	}
-
-	#canvas{border:red;}
-	body{
-		overflow: hidden;
-	}
-</style>
-
-<script>
-    let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
-        renderOnAddRemove: false, // lazy rendering
-        canvasElement: 'auto', // hardware acceleration
-        antialias: false
+anvas.addEventListener('touchstart', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
     });
-    let pencilBrush = new fabric.PencilBrush(canvas)
-	// set the minDistance property to 0 to disable smoothing
-     pencilBrush.minDistance = 0;
 
-// set the pressureSensitivity property to 0 to disable stroke width variation
-    pencilBrush.pressureSensitivity = 0;
-
-// set the stroke width to 5
-	
-	canvas.freeDrawingBrush = pencilBrush;
-	canvas.isDrawingMode = true;
-	
-    canvas.freeDrawingBrush.smoothing = false;
-    canvas.freeDrawingBrush.width = 2;
-    canvas.freeDrawingBrush.color = 'black';
-    canvas.setZoom(0.5)
-	
-canvas.devicePixelRatio = 0.5; // set the pixel ratio to 0.5 to reduce the resolution
-	canvas.renderOnAddRemove = false; // disable rendering on add/remove for faster performance
-	canvas.rendering = 'svg'; // use the svg rendering mode for faster performance
-	
-    // Reduce the resolution by setting the zoom
-    canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
-    canvas.setWidth(document.getElementById("contCanvasLogo").clientWidth);
-    canvas.on('object:added',function(){
-        if(!isRedoing){
-            history = [];
+    canvas.addEventListener('touchmove', (e) => {
+        if (isDrawing) {
+            e.preventDefault();
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop);
+            ctx.stroke();
+            [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
         }
-        isRedoing = false;
     });
-    // Set the canvas size to match the screen size
 
-    let isRedoing = false;
-    let history = [];
-    function undo(){
-        if(canvas._objects.length>0){
-            history.push(canvas._objects.pop());
-            canvas.renderAll();
-        }
-    }
-    function redo(){
+    canvas.addEventListener('touchend', () => {
+        isDrawing = false;
+    });
 
-        if(history.length>0){
-            isRedoing = true;
-            canvas.add(history.pop());
+
+    let undoStack = [];
+
+    function undo() {
+        if (undoStack.length > 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack.pop();
+            undoStack.forEach((state) => {
+                ctx.putImageData(state, 0, 0);
+            });
         }
     }
 
+    function redo() {
+        // Not implemented in this example
+    }
 
-
-    canvas.on('path:created', function(e) {
-        e.path.set({
-            selectable: false // Set selectable to false to improve performance
-        });
-
-        requestAnimationFrame(function() {
-            canvas.renderAll();
-        });
-    });
-
-
-    document.addEventListener("keydown", function(event) {
-        if (event.ctrlKey && event.code === 'KeyZ') {
-            undo();
-        }
-
-    });
-
-    document.addEventListener("keydown", function(event) {
-        if (event.ctrlKey && event.code === 'KeyY') {
-            redo();
-        }
-
-    });
-
-    document.addEventListener('keydown', function(event) {
-        // Check if the "P" key was pressed
-        if (event.key === 'p' || event.key === 'P') {
-            var dataURL = canvas.toDataURL('image/jpeg');
-
-            // Create an image object from the data URL
-            var image = new Image();
-            image.src = dataURL;
-
-            // Create a link element and click it to download the image
-            var link = document.createElement('a');
-            link.download = 'canvas.jpg';
-            link.href = dataURL;
-            link.click();
-
+    canvas.addEventListener('mouseup', () => {
+        if (isDrawing) {
+            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
     });
 
     document.addEventListener('keydown', function(event) {
         // Check if the "P" key was pressed
         if (event.key === 'e' || event.key === 'E') {
-            changeAction('erase')
+          undo();
         }
-        if (event.key === 'b' || event.key === 'B') {
-            changeAction('brush')
-        }
+
     });
-
-
-    function changeAction(mode) {
-        switch (mode) {
-            case "brush":
-                canvas.isDrawingMode = true;
-                canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
-                canvas.freeDrawingBrush.width = 10;
-                canvas.freeDrawingBrush.color = 'red';
-                break
-            case "erase":
-                canvas.isDrawingMode = true
-                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
-                canvas.freeDrawingBrush.width = 10
-                break
-            case 'undoErasing':
-                canvas.isDrawingMode = true
-                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
-                canvas.freeDrawingBrush.width = 10
-                canvas.freeDrawingBrush.inverted = true
-            default:
-                break
-        }
-    }
-
 
 
 </script>
 </html>
+
