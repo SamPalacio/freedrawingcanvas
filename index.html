@@ -29,7 +29,10 @@
     let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
         renderOnAddRemove: false, // lazy rendering
         canvasElement: 'auto', // hardware acceleration
+        antialias: false
     });
+    canvas.freeDrawingBrush= new fabric.PencilBrush(canvas)
+    canvas.freeDrawingBrush.smoothing = false;
     canvas.isDrawingMode = true;
     canvas.freeDrawingBrush.width = 3;
     canvas.freeDrawingBrush.color = 'black';
@@ -65,10 +68,13 @@
 
 
     canvas.on('path:created', function(e) {
+        e.path.set({
+            selectable: false // Set selectable to false to improve performance
+        });
 
-        e.path.set();
-        canvas.renderAll();
-
+        requestAnimationFrame(function() {
+            canvas.renderAll();
+        });
     });
 
 
