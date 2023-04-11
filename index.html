@@ -19,18 +19,55 @@
     
     
 <script>
-var canvas = new fabric.Canvas(document.getElementById('canvasId'))
-canvas.isDrawingMode = true;
-canvas.freeDrawingBrush.width = 5;
-canvas.freeDrawingBrush.color = '#00aeff';
+    var canvas = new fabric.Canvas(document.getElementById('canvasId'))
+    canvas.isDrawingMode = true;
+    canvas.freeDrawingBrush.width = 5;
+    canvas.freeDrawingBrush.color = '#00aeff';
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+    canvas.on('object:added',function(){
+        if(!isRedoing){
+            history = [];
+        }
+        isRedoing = false;
+    });
+    let isRedoing = false;
+    let history = [];
+    function undo(){
+        if(canvas._objects.length>0){
+            history.push(canvas._objects.pop());
+            canvas.renderAll();
+        }
+    }
+    function redo(){
 
-canvas.on('path:created', function(e) {
-  
-  e.path.set();
-  canvas.renderAll();
-  console.log(canvas.toDataURL("image/png").replace("img/png", "image/octet-string"));
+        if(history.length>0){
+            isRedoing = true;
+            canvas.add(history.pop());
+        }
+    }
 
-});
+    canvas.setDimensions({
+        width: screenWidth,
+        height: screenHeight
+    });
 
+    // Add an event listener to detect changes in screen size
+    window.addEventListener('resize', function() {
+        // Get the new screen dimensions
+        var newScreenWidth = window.innerWidth;
+        var newScreenHeight = window.innerHeight;
+
+        // Update the canvas dimensions
+        canvas.setDimensions({
+            width: newScreenWidth,
+            height: newScreenHeight
+        });
+    });
+
+    canvas.on('path:created', function(e) {
+        e.path.set();
+        canvas.renderAll();
+    });
 </script>
 </html>
