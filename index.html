@@ -3,45 +3,25 @@
 <head>
     <meta charset="utf-8">
     <title>Fabric.js Example</title>
-    <script src="fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.19/fabric.min.js"></script>
 </head>
 <body>
-<canvas id="canvasId"></canvas>
+<canvas id="canvasId" width="400" height="400"></canvas>
 </body>
 
-<style>
-    canvas{
-        width: 100%;
-        height: 100%;
-    }
-    body{
-        overflow: hidden;
-    }
-</style>
-
 <script>
+var canvas = new fabric.Canvas(document.getElementById('canvasId'))
+canvas.isDrawingMode = true;
+canvas.freeDrawingBrush.width = 5;
+canvas.freeDrawingBrush.color = '#00aeff';
 
+canvas.on('path:created', function(e) {
+  
+  e.path.set();
+  canvas.renderAll();
+  console.log(canvas.toDataURL("image/png").replace("img/png", "image/octet-string"));
 
-    let screenWidth = window.innerWidth;
-    let screenHeight = window.innerHeight;
-    let canvas = new fabric.Canvas(document.getElementById('canvasId'))
-    canvas.isDrawingMode = true;
-    canvas.freeDrawingBrush.width = 3;
-    canvas.freeDrawingBrush.color = 'blue';
-    canvas.enableTouchEvents = true;
-    canvas.freeDrawingBrush.strokeWidth = 2;
-    canvas.freeDrawingBrush.minStrokeWidth = 1;
-    canvas.setDimensions({
-        width: screenWidth,
-        height: screenHeight
-    });
-    
-       canvas.on('path:created', function(e) {
-        e.path.set();
-        canvas.renderAll();
-    });
-    
-    }
+});
 
 </script>
 </html>
