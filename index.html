@@ -1,89 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Paint</title>
+	<title>Canvas Example</title>
+	<style>
+		#canvas {
+			border: 1px solid black;
+		}
+	</style>
 </head>
 <body>
+	<canvas id="canvas"></canvas>
 
-<canvas id="canvas1"></canvas>
+	<script>
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+
+		// Set the canvas size to match the screen size
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		// Update the canvas size whenever the window is resized
+		window.addEventListener('resize', () => {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		});
+
+		let isDrawing = false;
+		let lastX = 0;
+		let lastY = 0;
+
+		function draw(e) {
+			if (!isDrawing) return;
+			ctx.beginPath();
+			ctx.moveTo(lastX, lastY);
+			ctx.lineTo(e.clientX, e.clientY);
+			ctx.stroke();
+			[lastX, lastY] = [e.clientX, e.clientY];
+		}
+
+		canvas.addEventListener('mousedown', (e) => {
+			isDrawing = true;
+			[lastX, lastY] = [e.clientX, e.clientY];
+		});
+
+		canvas.addEventListener('mousemove', draw);
+		canvas.addEventListener('mouseup', () => isDrawing = false);
+		canvas.addEventListener('mouseout', () => isDrawing = false);
+	</script>
 </body>
-
-<script>
-    // Canvas Set up
-    const  canvas =document.querySelector("canvas")
-    canvas.height=window.innerHeight
-    canvas.width=window.innerWidth
-    const ctx =canvas.getContext("2d")
-
-    //Line Set up
-    ctx.lineJoin="round" //rounded shape
-    ctx.lineCap="round"
-    ctx.strokeStyle=""
-    ctx.lineWidth="2";
-    ctx.globalCompositeOperation="darken"
-
-    //variables
-    let lastX=0;
-    let lastY=0;
-    let isDrawing;
-    let hue=0;
-    let direction =true;
-    //Line draw
-
-
-    function  drawLine(e){
-        if (!isDrawing) return;
-        ctx.beginPath(); //Call this before stroke
-        ctx.moveTo(lastX,lastY); //Where line begins---------------------------------------------------
-        ctx.lineTo(e.offsetX,e.offsetY); //Where line ends-----------------------------------------------
-
-        ctx.stroke(); //
-        [lastX,lastY]=[e.offsetX,e.offsetY]
-
-        console.log("Line")
-
-    }
-
-    // drawing events
-
-    canvas.addEventListener("mousedown", (e) =>{
-        isDrawing=true;
-        [lastX,lastY]=[e.offsetX,e.offsetY]
-    })
-
-    canvas.addEventListener("mouseup", () => isDrawing=false)
-    canvas.addEventListener("mouseout", () => isDrawing=false)
-
-    //When mouse is moving draw the line
-    canvas.addEventListener("mousemove",drawLine)
-
-
-
-    function drawLinePhone(e) {
-  if (!isDrawing) return;
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(e.touches[0].clientX, e.touches[0].clientY);
-  ctx.stroke();
-  [lastX, lastY] = [e.touches[0].clientX, e.touches[0].clientY];
-}
-
-canvas.addEventListener("touchstart", (e) => {
-  isDrawing = true;
-  [lastX, lastY] = [e.touches[0].clientX, e.touches[0].clientY];
-});
-
-canvas.addEventListener("touchend", () => (isDrawing = false));
-
-canvas.addEventListener("touchcancel", () => (isDrawing = false));
-
-canvas.addEventListener("touchmove", drawLinePhone);
-
-
-
-
-
-
-</script>
 </html>
