@@ -1,215 +1,62 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Fabric.js Example</title>
-    <script src="fabric.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Paint</title>
 </head>
-<div id="contCanvasLogo">
-    <canvas id="canvasId" class="resize canvasLogo"></canvas>
-</div>
+<body>
 
-<style>
-	#contCanvasLogo {
-		width: 100vw;
-		height: 100vh;
-	}
-
-	#canvas{border:red;}
-	body{
-		overflow: hidden;
-	}
-</style>
+<canvas id="canvas1"></canvas>
+</body>
 
 <script>
+    // Canvas Set up
+    const  canvas =document.querySelector("canvas")
+    canvas.height=window.innerHeight
+    canvas.width=window.innerWidth
+    const ctx =canvas.getContext("2d")
 
-    class FastBrush extends fabric.BaseBrush {
-  initialize(canvas) {
-    this.canvas = canvas;
-    this.points = [];
-  }
+    //Line Set up
+    ctx.lineJoin="round" //rounded shape
+    ctx.lineCap="round"
+    ctx.strokeStyle="black"
+    ctx.lineWidth="2";
+    ctx.globalCompositeOperation="darken"
 
-  onMouseDown(pointer) {
-    this.points.length = 0;
-    this.addPoint(pointer);
-    this.canvas.contextTop.beginPath();
-    this.canvas.contextTop.moveTo(pointer.x, pointer.y);
-  }
-
-  onMouseMove(pointer) {
-    this.addPoint(pointer);
-    const length = this.points.length;
-    if (length === 2) {
-      this.canvas.contextTop.lineTo(this.points[1].x, this.points[1].y);
-      this.canvas.contextTop.stroke();
-      this.canvas.contextTop.beginPath();
-      this.canvas.contextTop.moveTo(this.points[1].x, this.points[1].y);
-    } else if (length > 2) {
-      const lastPoint = this.points[length - 1];
-      const prevPoint = this.points[length - 2];
-      this.canvas.contextTop.moveTo(prevPoint.x, prevPoint.y);
-      this.canvas.contextTop.lineTo(lastPoint.x, lastPoint.y);
-      this.canvas.contextTop.stroke();
-    }
-  }
-
-  onMouseUp() {
-    this.canvas.fire('path:created', { path: this._finalizeDrawing() });
-  }
-
-  addPoint(pointer) {
-    this.points.push({
-      x: pointer.x,
-      y: pointer.y,
-    });
-  }
-
-  _finalizeDrawing() {
-    const ctx = this.canvas.contextTop;
-    ctx.closePath();
-
-    const pathData = ctx.getImageData(
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
-
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.points.length = 0;
-
-    return new fabric.Path(pathData, {
-      fill: null,
-      stroke: this.color,
-      strokeWidth: this.width,
-      strokeLineCap: this.strokeLineCap,
-      strokeLineJoin: this.strokeLineJoin,
-      strokeMiterLimit: this.strokeMiterLimit,
-    });
-  }
-}
+    //variables
+    let lastX=0;
+    let lastY=0;
+    let isDrawing;
+    let hue=0;
+    let direction =true;
+    //Line draw
 
 
+    function  drawLine(e){
+        if (!isDrawing) return;
+        ctx.beginPath(); //Call this before stroke
+        ctx.moveTo(lastX,lastY); //Where line begins---------------------------------------------------
+        ctx.lineTo(e.offsetX,e.offsetY); //Where line ends-----------------------------------------------
 
+        ctx.stroke(); //
+        [lastX,lastY]=[e.offsetX,e.offsetY]
 
-    let canvas = new fabric.Canvas(document.getElementById('canvasId'), {
-        renderOnAddRemove: false, // lazy rendering
-        canvasElement: 'auto', // hardware acceleration
-        antialias: false
-    });
+        console.log("Line")
 
-
-    // set the brush to be active when the mouse is down
-    canvas.freeDrawingBrush = new FastBrush(canvas);
-    canvas.isDrawingMode = true;
-    canvas.freeDrawingBrush.width = 3;
-    canvas.freeDrawingBrush.color = 'black';
-    // Reduce the resolution by setting the zoom
-    canvas.setHeight(document.getElementById("contCanvasLogo").clientHeight);
-    canvas.setWidth(document.getElementById("contCanvasLogo").clientWidth);
-    canvas.on('object:added',function(){
-        if(!isRedoing){
-            history = [];
-        }
-        isRedoing = false;
-    });
-    // Set the canvas size to match the screen size
-
-    let isRedoing = false;
-    let history = [];
-    function undo(){
-        if(canvas._objects.length>0){
-            history.push(canvas._objects.pop());
-            canvas.renderAll();
-        }
-    }
-    function redo(){
-
-        if(history.length>0){
-            isRedoing = true;
-            canvas.add(history.pop());
-        }
     }
 
+    // drawing events
 
+    canvas.addEventListener("mousedown", (e) =>{
+        isDrawing=true;
+        [lastX,lastY]=[e.offsetX,e.offsetY]
+    })
 
-    canvas.on('path:created', function(e) {
-        e.path.set({
-            selectable: false // Set selectable to false to improve performance
-        });
+    canvas.addEventListener("mouseup", () => isDrawing=false)
+    canvas.addEventListener("mouseout", () => isDrawing=false)
 
-        requestAnimationFrame(function() {
-            canvas.renderAll();
-        });
-    });
-
-
-    document.addEventListener("keydown", function(event) {
-        if (event.ctrlKey && event.code === 'KeyZ') {
-            undo();
-        }
-
-    });
-
-    document.addEventListener("keydown", function(event) {
-        if (event.ctrlKey && event.code === 'KeyY') {
-            redo();
-        }
-
-    });
-
-    document.addEventListener('keydown', function(event) {
-        // Check if the "P" key was pressed
-        if (event.key === 'p' || event.key === 'P') {
-            var dataURL = canvas.toDataURL('image/jpeg');
-
-            // Create an image object from the data URL
-            var image = new Image();
-            image.src = dataURL;
-
-            // Create a link element and click it to download the image
-            var link = document.createElement('a');
-            link.download = 'canvas.jpg';
-            link.href = dataURL;
-            link.click();
-
-        }
-    });
-
-    document.addEventListener('keydown', function(event) {
-        // Check if the "P" key was pressed
-        if (event.key === 'e' || event.key === 'E') {
-            changeAction('erase')
-        }
-        if (event.key === 'b' || event.key === 'B') {
-            changeAction('brush')
-        }
-    });
-
-
-    function changeAction(mode) {
-        switch (mode) {
-            case "brush":
-                canvas.isDrawingMode = true;
-                canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
-                canvas.freeDrawingBrush.width = 10;
-                canvas.freeDrawingBrush.color = 'red';
-                break
-            case "erase":
-                canvas.isDrawingMode = true
-                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
-                canvas.freeDrawingBrush.width = 10
-                break
-            case 'undoErasing':
-                canvas.isDrawingMode = true
-                canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
-                canvas.freeDrawingBrush.width = 10
-                canvas.freeDrawingBrush.inverted = true
-            default:
-                break
-        }
-    }
-
-
+    //When mouse is moving draw the line
+    canvas.addEventListener("mousemove",drawLine)
 
 
 </script>
