@@ -1,55 +1,143 @@
-<!DOCTYPE html>
 <html>
 <head>
-	<title>Canvas Example</title>
-	<style>
-		#canvas {
-			border: 1px solid black;
-		}
-		
-		body {
-			overflow: hidden;
-		}
-	</style>
+    <meta charset="utf-8">
 </head>
-<body>
-	<canvas id="canvas"></canvas>
 
-	<script>
-		const canvas = document.getElementById('canvas');
-		const ctx = canvas.getContext('2d');
 
-		// Set the canvas size to match the screen size
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+
+<div id="contCanvasLogo">
+</div>
+
+<style>
+	#contCanvasLogo {
+		width: 96%;
+		height: 98%;
+        display: flex;
+	}
+	canvas{
+    align-self: center;
+    }
+	body{
+		overflow: hidden;
+	}
+</style>
+
+<script>
+    const canvas = document.createElement('canvas');
+    canvas.width = document.getElementById('contCanvasLogo').clientWidth;
+    canvas.height = document.getElementById('contCanvasLogo').clientHeight;
+
+
+    
+            // Update the canvas size whenever the window is resized
+            window.addEventListener('resize', () => {
+                
+                canvas.width = document.getElementById('contCanvasLogo').clientWidth;
+                canvas.height = document.getElementById('contCanvasLogo').clientHeight;
+            });
+    
 
 		// Update the canvas size whenever the window is resized
 		window.addEventListener('resize', () => {
+            
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
 		});
 
-		let isDrawing = false;
-		let lastX = 0;
-		let lastY = 0;
 
-		function draw(e) {
-			if (!isDrawing) return;
-			ctx.beginPath();
-			ctx.moveTo(lastX, lastY);
-			ctx.lineTo(e.clientX, e.clientY);
-			ctx.stroke();
-			[lastX, lastY] = [e.clientX, e.clientY];
-		}
 
-		canvas.addEventListener('mousedown', (e) => {
-			isDrawing = true;
-			[lastX, lastY] = [e.clientX, e.clientY];
-		});
+    document.getElementById('contCanvasLogo').appendChild(canvas);
 
-		canvas.addEventListener('mousemove', draw);
-		canvas.addEventListener('mouseup', () => isDrawing = false);
-		canvas.addEventListener('mouseout', () => isDrawing = false);
-	</script>
-</body>
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    let isDrawing = false;
+    let lastX, lastY;
+
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+    canvas.width = document.getElementById('contCanvasLogo').clientWidth;
+    canvas.height = document.getElementById('contCanvasLogo').clientHeight;
+
+    // Update the canvas size whenever the window is resized
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDrawing) {
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+        isDrawing = false;
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (isDrawing) {
+            e.preventDefault();
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop);
+            ctx.stroke();
+            [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
+        }
+    });
+
+    canvas.addEventListener('touchend', () => {
+        isDrawing = false;
+    });
+
+
+    let undoStack = [];
+
+    function undo() {
+        if (undoStack.length > 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack.pop();
+            undoStack.forEach((state) => {
+                ctx.putImageData(state, 0, 0);
+            });
+        }
+    }
+
+    function redo() {
+        // Not implemented in this example
+    }
+
+    canvas.addEventListener('mouseup', () => {
+        if (isDrawing) {
+            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        // Check if the "P" key was pressed
+        if (event.key === 'e' || event.key === 'E') {
+          undo();
+        }
+
+    });
+
+
+</script>
 </html>
