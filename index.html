@@ -108,35 +108,7 @@
     });
 
 
-    let undoStack = [];
 
-    function undo() {
-        if (undoStack.length > 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            undoStack.pop();
-            undoStack.forEach((state) => {
-                ctx.putImageData(state, 0, 0);
-            });
-        }
-    }
-
-    function redo() {
-        // Not implemented in this example
-    }
-
-    canvas.addEventListener('mouseup', () => {
-        if (isDrawing) {
-            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        }
-    });
-
-    document.addEventListener('keydown', function(event) {
-        // Check if the "P" key was pressed
-        if (event.key === 'e' || event.key === 'E') {
-          undo();
-        }
-
-    });
 
 
 </script>
