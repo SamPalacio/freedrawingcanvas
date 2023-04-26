@@ -63,11 +63,24 @@
     });
     canvas.width = document.getElementById('contCanvasLogo').clientWidth;
     canvas.height = document.getElementById('contCanvasLogo').clientHeight;
+let drawingData = [];
 
     // Update the canvas size whenever the window is resized
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+	     let newData = [];
+    let scaleX = canvas.width / window.innerWidth;
+    let scaleY = canvas.height / window.innerHeight;
+    for (let i = 0; i < drawingData.length; i++) {
+        let newX = drawingData[i].x * scaleX;
+        let newY = drawingData[i].y * scaleY;
+        newData.push({ x: newX, y: newY });
+    }
+    drawingData = newData;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    redrawDrawing();
     });
     canvas.addEventListener('mousemove', (e) => {
         if (isDrawing) {
@@ -75,7 +88,8 @@
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(e.offsetX, e.offsetY);
             ctx.stroke();
-            [lastX, lastY] = [e.offsetX, e.offsetY];
+         drawingData.push({ x: currentX, y: currentY });
+        [lastX, lastY] = [currentX, currentY];
         }
     });
 
@@ -107,7 +121,15 @@
         isDrawing = false;
     });
 
-
+function redrawDrawing() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 1; i < drawingData.length; i++) {
+        ctx.beginPath();
+        ctx.moveTo(drawingData[i - 1].x, drawingData[i - 1].y);
+        ctx.lineTo(drawingData[i].x, drawingData[i].y);
+        ctx.stroke();
+    }
+}
 
 
 
