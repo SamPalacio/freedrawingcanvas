@@ -67,8 +67,7 @@ let drawingData = [];
 
     // Update the canvas size whenever the window is resized
     window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    
 	     let newData = [];
     let scaleX = canvas.width / window.innerWidth;
     let scaleY = canvas.height / window.innerHeight;
@@ -76,6 +75,8 @@ let drawingData = [];
         let newX = drawingData[i].x * scaleX;
         let newY = drawingData[i].y * scaleY;
         newData.push({ x: newX, y: newY });
+	        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
     drawingData = newData;
     canvas.width = window.innerWidth;
